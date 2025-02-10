@@ -1,5 +1,5 @@
 # Introduction
-`agentic_chat_statemachine` is a python package that allows multi-agent architectures but in a precisely controlled manner. You define the entire conversation states and branches in a json file and `agentic_chat_statemachine` will ensure that the right chain/agents are handling the chat at the right points in time. Unlike the more common multi-agent orchestration systems, this approach allows you to benefit from the better performance of multi-agent systems and at the same time retain precise control on how the conversation flows and branches out. This may be paarticularly important for user facing apps where the bots need to follow runbooks precisely.
+`agentic_chat_statemachine` is a python package that allows multi-agent architectures but in a precisely controlled manner. You define the entire conversation states and branches in a json file and `agentic_chat_statemachine` will ensure that the right chain/agents are handling the chat at the right points in time. Unlike the more common multi-agent orchestration systems, this approach allows you to benefit from the better performance of multi-agent systems and at the same time retain precise control on how the conversation flows and branches out. This may be particularly important for user facing apps where the bots need to follow runbooks precisely.
 
 # Features
 - Specify the entire statemachine as a json file.
@@ -50,24 +50,67 @@ You can run the sample script easily from a terminal by followng the below steps
     ```
 
 # JSON definition
-The json definition includes all states the chat would ever be in as well as all the transitions between these states. Both states and transitions are expressed in natural language and `agentic_chat_statemachine` uses LLM to make the right branching decisions on your behalf. Have a look at the json used by the same to develop a better understanding of the same. The intial state is specified against the `initial_state` key and all states are listed against the `states` key. Every state has a list of `branches`, and each branch specifies the target state as well as the `condition` under which the branching should occur.
+The json definition includes all states the chat would ever be in as well as all the transitions between these states. Both states and transitions are expressed in natural language and `agentic_chat_statemachine` uses LLM to make the right branching decisions on your behalf. Have a look at the json used by the sample to develop a better understanding of the same. The intial state is specified against the `initial_state` key and all states are listed against the `states` key. Every state has a list of `branches`, and each branch specifies the target state as well as the `condition` under which the branching should occur.
+```
+{
+    "name": "front-desk-chat",
+    "system_message": "You are a professional and helpful customer support agent.",
+    "initial_state": "initial",
+    "states": {
+        "initial": {
+            "description": "In this state, the agent accepts general questions from the human and responds accordingly.",
+            "branches": [
+                {
+                    "next": "car_details",
+                    "condition": "Human is asking about available cars or their details."
+                },
 
-Note that `condition` is optional for a branch and when omitted the branch becomes an unconditional one that immediately moves on to the next step after invoking the chain for that state just ones.
+...
+```
 
-The boolean flag `confirmation` can be used with a branch to enable the `agentic_chat_statemachine` ask for user confirmation before branch off to the target. The process of getting the confirmation itself can be a muti-turn conversation and it is automatically handled for you.
+Note that `condition` is optional for a branch and when omitted the branch becomes an unconditional one that immediately moves on to the next step after invoking the chain for that state just once.
+
+The boolean flag `confirmation` can be used with a branch to enable the `agentic_chat_statemachine` ask for user confirmation before branching off to the target. The process of getting the confirmation itself can be a muti-turn conversation and it is automatically handled for you.
+
+```
+...
+
+        "car_details": {
+            "description": "In this state, the human and the agent engages in a conversation regarding available cars and their details.",
+            "branches": [
+                {
+                    "next": "initial",
+                    "condition": "Human is telling something unrelated to the current task or want to start over.",
+                    "confirmation": true
+                },
+
+...
+```
 
 There is another boolean flag named `afterwards` which makes the branching condition to be evaluated after the chain for that state has been invoked. It is useful for making branches based on a response from the AI instead of the message from the human.
 
+```
+...
+
+                {
+                    "next": "post_booking",
+                    "condition": "AI has completed the booking.",
+                    "afterwards": true
+                }
+
+...
+```
+
 When a branching happens, new human input is awaited before invoking the chain of the new state. However you can use the `needs_human_input` flag with a false value in a state to indicate that the new state should be invoked immediately with the last available human input. This can be handy in certain cases where unconditional transfer is needed, or when returning back to the initial state, in which case, we normally would want to respond based on the last human message but using the new state's chain.
 
-Note that unlike the `before` branches(The normal ones), the `after` branches(Which run after AI has replied) are not automatically chained, as it makes little sense to have wated for the AI if we branching was not conditional.
+Note that unlike the `before` branches(The normal ones), the `after` branches(Which run after AI has replied) are not automatically chained, as it makes little sense to have waited for the AI if we branching was not conditional.
 
 ## API
 `ChatStateMachine` class is the only item exposed from the package and it includes all the avaialbe APIs. The table below lists the avaiable APIs in this class its description.
 | Month    | Savings |
 | -------- | ------- |
 | set_state | Hydrate this statemachine from a serialized data. This is useful when deploying on to stateless platforms like AWS Lambda. |
-| get_state | Get a serialized representation of this statemachine's current state. |
+| get_state | Get a serialized representation of this statemachine's current internal state as well as all messages. |
 | get_messages | Get all messages. |
 | send_message | This is the primary API and it process a new message from the human. This message as well as AI's reply will be added to the set of all messages. |
 
