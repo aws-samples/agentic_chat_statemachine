@@ -15,7 +15,7 @@ You can use `agentic_chat_statemachine` as a standard python package with any La
 Checkout the `car_rental_chat.py` file for an example of how to do this. It demonstrates how this package can be used to implement a chat bot for a car rental company. It has multiple chains(Will be agents in a real application) which are activated according to the definitions of the statemachine json file. 
 
 # Running the sample
-The accompanying example implements a simple customer support bot for a finctional car renting company with a conversation flow as in the below image. All states have a branch going back to initial as well, which is not shown here for brevity. Each state has a chain/agent that specializes is handling the conversation about that subject.
+The accompanying example implements a simple customer support bot for a fictional car renting company with a conversation flow as in the below image. All states have a branch going back to initial as well, which is not shown here for brevity. Each state has a chain/agent that specializes is handling the conversation about that subject.
 
 ![Sample state definition](state-definition.png)
 
