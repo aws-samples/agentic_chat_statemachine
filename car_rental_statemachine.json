@@ -1,0 +1,82 @@
+{
+    "name": "front-desk-chat",
+    "system_message": "You are a professional and helpful customer support agent handling questions from customers of ABC car rental service pvt ltd. You will answer questions based on known facts only, and if you can't find relavant factual information, then ask the customer to call a human agent at the number 999.",
+    "initial_state": "initial",
+    "states": {
+        "initial": {
+            "description": "This is the initial state where the agent accepts general questions from the human and responds accordingly.",
+            "branches": [
+                {
+                    "next": "car_details",
+                    "condition": "Human is asking about available cars or their details."
+                },
+                {
+                    "next": "booking",
+                    "condition": "Human is asking to book a car."
+                },
+                {
+                    "next": "cancellation",
+                    "condition": "Human is talking about cancellation of an existing booking"
+                }
+            ]
+        },
+        "car_details": {
+            "description": "In this state, the human and the agent engages in a conversation regarding available cars and their details.",
+            "branches": [
+                {
+                    "next": "initial",
+                    "condition": "Human is telling something unrelated to the current task or want to start over.",
+                    "confirmation": true
+                },
+                {
+                    "next": "booking",
+                    "condition": "Human is asking to book a car."
+                }
+            ]
+        },
+        "booking": {
+            "description": "In this state, the human and the agent engages in a conversation regarding makinng a car booking.",
+            "branches": [
+                {
+                    "next": "initial",
+                    "condition": "Human is telling something unrelated to the current task or want to start over.",
+                    "confirmation": true
+                },
+                {
+                    "next": "post_booking",
+                    "condition": "AI has completed the booking.",
+                    "afterwards": true
+                }
+            ]
+        },
+        "post_booking": {
+            "description": "In this state, agent has just booked the car, and is available for any further asistance.",
+            "branches": [
+                {
+                    "next": "initial",
+                    "condition": "Human is telling something unrelated to the current task or want to start over.",
+                    "confirmation": true
+                },
+                {
+                    "next": "cancellation",
+                    "condition": "Human is talking about cancellation of an existing booking"
+                }
+            ]
+        },
+        "cancellation": {
+            "description": "In this state, the human and the agent engages in a conversation regarding cancellation of an existing booking.",
+            "branches": [
+                {
+                    "next": "initial",
+                    "condition": "Human is telling something unrelated to the current task or want to start over.",
+                    "confirmation": true
+                },
+                {
+                    "next": "initial",
+                    "condition": "AI has completed cancelling the booking.",
+                    "afterwards": true
+                }
+            ]
+        }
+    }
+}
